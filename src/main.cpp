@@ -62,7 +62,17 @@ int main() {
         window.draw(sprite);
         window.display();
     }
-
+    sf::Texture img;
+if (!img.loadFromFile("void.jpg")) {
+    // If it fails, try to load it from the root just in case
+    if (!img.loadFromFile("./void.jpg")) {
+        std::cerr << "Error: void.jpg not found in working directory!" << std::endl;
+        // This will create a tiny white square so you know the app is working
+        sf::Image fallback;
+        fallback.create(100, 100, sf::Color::White);
+        img.loadFromImage(fallback);
+    }
+}
     delete core;
     return 0;
 }
