@@ -1,2 +1,4 @@
 # abyss.
-a simple game.
+a simple game about voids.
+
+dead simple.
