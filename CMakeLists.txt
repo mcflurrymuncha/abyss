@@ -6,13 +6,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# --- 1. SFML ---
+# --- 1. SFML (Minimal) ---
 FetchContent_Declare(
     sfml
     GIT_REPOSITORY https://github.com/SFML/SFML.git
     GIT_TAG 2.6.1
 )
+
+# Skip the "shit" you don't need
+set(SFML_BUILD_AUDIO OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_NETWORK OFF CACHE BOOL "" FORCE)
 set(SFML_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SFML_BUILD_DOC OFF CACHE BOOL "" FORCE)
+set(SFML_INSTALL_PDB OFF CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(sfml)
 
 # --- 2. DISCORD GAME SDK ---
@@ -23,12 +30,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(discord_game_sdk)
 
 # --- 3. SOURCE DISCOVERY ---
-# This looks into the extracted folder to find the actual C++ wrapper files
 file(GLOB DISCORD_SDK_SOURCES "${discord_game_sdk_SOURCE_DIR}/cpp/*.cpp")
-file(GLOB DISCORD_SDK_HEADERS "${discord_game_sdk_SOURCE_DIR}/cpp/*.h")
 
 # --- 4. BUILD TARGET ---
-# We include our main file and all the Discord SDK source files found
 add_executable(Abyss 
     src/main.cpp 
     ${DISCORD_SDK_SOURCES}
@@ -36,10 +40,9 @@ add_executable(Abyss
 
 set_target_properties(Abyss PROPERTIES OUTPUT_NAME "Abyss.")
 
-# Tell the compiler where the Discord headers are
 target_include_directories(Abyss PRIVATE ${discord_game_sdk_SOURCE_DIR}/cpp)
 
-# Link everything
+# Link ONLY Graphics, Window, and System
 target_link_libraries(Abyss 
     sfml-graphics 
     sfml-window 
@@ -48,10 +51,8 @@ target_link_libraries(Abyss
 )
 
 # --- 5. ASSETS & DLLs ---
-# Copy the Discord DLL to the build folder so the game can run
 file(COPY "${discord_game_sdk_SOURCE_DIR}/lib/x86_64/discord_game_sdk.dll" DESTINATION ${CMAKE_BINARY_DIR})
 
-# Copy your image
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets/void.jpg")
     file(COPY "${CMAKE_SOURCE_DIR}/assets/void.jpg" DESTINATION ${CMAKE_BINARY_DIR})
 elseif(EXISTS "${CMAKE_SOURCE_DIR}/void.jpg")
