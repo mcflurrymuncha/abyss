@@ -1,0 +1,39 @@
+name: Build Abyss.
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake
+      # This sets up the build environment and downloads SFML/Discord-RPC
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      # This compiles the actual Abyss..exe
+      run: cmake --build ${{github.workspace}}/build --config Release
+
+    - name: Package Artifacts
+      # This gathers the EXE, the DLLs, and the image into one place
+      shell: bash
+      run: |
+        mkdir -p release
+        cp build/Release/Abyss..exe release/
+        cp build/void.jpg release/
+        # Copy any DLLs generated in the build folder to the release folder
+        find build -name "*.dll" -exec cp {} release/ \;
+
+    - name: Upload Build
+      # This makes the zip file available for download on GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: Abyss-Windows-Build
+        path: release/
