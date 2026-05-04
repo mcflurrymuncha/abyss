@@ -3,35 +3,37 @@ name: Build Abyss.
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
+    - name: Setup Safe Workspace
+      # Create a directory on C: that definitely doesn't have a dot
+      run: mkdir C:\build_work
+
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
-        # This is the magic fix: forces a safe folder name
-        path: 'abyss_repo'
+        # Checkout into the safe C: directory
+        path: 'C:\build_work\repo'
 
     - name: Configure CMake
-      # We now point to the abyss_repo folder we created above
-      run: cmake -S abyss_repo -B build_dir -DCMAKE_BUILD_TYPE=Release
+      run: |
+        cmake -S C:\build_work\repo -B C:\build_work\build_dir -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
-      run: cmake --build build_dir --config Release
+      run: cmake --build C:\build_work\build_dir --config Release
 
     - name: Package Artifacts
       shell: bash
       run: |
         mkdir -p release
-        cp build_dir/Release/*.exe release/ 2>/dev/null || cp build_dir/*.exe release/
-        # Check assets folder or root for the image
-        cp abyss_repo/assets/void.jpg release/ 2>/dev/null || cp abyss_repo/void.jpg release/
-        find build_dir -name "*.dll" -exec cp {} release/ \;
+        cp /c/build_work/build_dir/Release/*.exe release/ 2>/dev/null || cp /c/build_work/build_dir/*.exe release/
+        # Copy image - adjust if yours is in a folder named assets
+        cp /c/build_work/repo/assets/void.jpg release/ 2>/dev/null || cp /c/build_work/repo/void.jpg release/
+        find /c/build_work/build_dir -name "*.dll" -exec cp {} release/ \;
 
     - name: Upload Build
       uses: actions/upload-artifact@v4
