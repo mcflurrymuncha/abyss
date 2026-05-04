@@ -11,11 +11,15 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        # This is the magic fix: forces a safe folder name
+        path: 'abyss_repo'
 
     - name: Configure CMake
-      # Use a safe folder name like 'build_dir' instead of the default workspace
-      run: cmake -B build_dir -DCMAKE_BUILD_TYPE=Release
+      # We now point to the abyss_repo folder we created above
+      run: cmake -S abyss_repo -B build_dir -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       run: cmake --build build_dir --config Release
@@ -24,13 +28,12 @@ jobs:
       shell: bash
       run: |
         mkdir -p release
-        # Use a wildcard to find the exe in case the dot causes pathing issues
         cp build_dir/Release/*.exe release/ 2>/dev/null || cp build_dir/*.exe release/
-        cp assets/void.jpg release/ || cp void.jpg release/
+        # Check assets folder or root for the image
+        cp abyss_repo/assets/void.jpg release/ 2>/dev/null || cp abyss_repo/void.jpg release/
         find build_dir -name "*.dll" -exec cp {} release/ \;
 
     - name: Upload Build
-      # This makes the zip file available for download on GitHub
       uses: actions/upload-artifact@v4
       with:
         name: Abyss-Windows-Build
