@@ -25,7 +25,7 @@ void updateActivity(discord::Core* core, int secondsLeft) {
 int main() {
     // Initialize Discord Core (Replace 1234567890 with your actual Client ID)
     discord::Core* core{};
-    auto result = discord::Core::Create(1234567890, DiscordCreateFlags_Default, &core);
+    auto result = discord::Core::Create(1500874965879226498, DiscordCreateFlags_Default, &core);
     
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Abyss.", sf::Style::Fullscreen);
     window.setMouseCursorVisible(false);
