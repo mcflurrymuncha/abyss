@@ -9,31 +9,32 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Setup Safe Workspace
-      # Create a directory on C: that definitely doesn't have a dot
-      run: mkdir C:\build_work
-
     - name: Checkout Code
       uses: actions/checkout@v4
-      with:
-        # Checkout into the safe C: directory
-        path: 'C:\build_work\repo'
 
     - name: Configure CMake
-      run: |
-        cmake -S C:\build_work\repo -B C:\build_work\build_dir -DCMAKE_BUILD_TYPE=Release
+      # Since the repo name is safe now, we can use standard paths
+      run: cmake -B build_dir -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
-      run: cmake --build C:\build_work\build_dir --config Release
+      run: cmake --build build_dir --config Release
 
     - name: Package Artifacts
       shell: bash
       run: |
         mkdir -p release
-        cp /c/build_work/build_dir/Release/*.exe release/ 2>/dev/null || cp /c/build_work/build_dir/*.exe release/
-        # Copy image - adjust if yours is in a folder named assets
-        cp /c/build_work/repo/assets/void.jpg release/ 2>/dev/null || cp /c/build_work/repo/void.jpg release/
-        find /c/build_work/build_dir -name "*.dll" -exec cp {} release/ \;
+        # Copy the exe (it will be named Abyss..exe because of the CMake settings)
+        cp build_dir/Release/*.exe release/ 2>/dev/null || cp build_dir/*.exe release/
+        
+        # Copy the image (checks assets folder first, then root)
+        if [ -f "assets/void.jpg" ]; then
+          cp assets/void.jpg release/
+        elif [ -f "void.jpg" ]; then
+          cp void.jpg release/
+        fi
+        
+        # Gather all necessary DLLs (SFML and Discord)
+        find build_dir -name "*.dll" -exec cp {} release/ \;
 
     - name: Upload Build
       uses: actions/upload-artifact@v4
